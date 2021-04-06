@@ -1,0 +1,202 @@
+{% extends 'base_main.html' %}
+
+{% block title %}购物车{% endblock %}
+
+    {% block body %}
+	<div class="search_bar clearfix">
+		<a href="{% url 'user:index' %}" class="logo fl"><img src="/static/images/logo.png"></a>
+		<div class="sub_page_name fl">|&nbsp;&nbsp;&nbsp;&nbsp;购物车</div>
+		<div class="search_con fr">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>		
+	</div>
+
+	<div class="total_count">全部商品<em>2</em>件</div>	
+	<ul class="cart_list_th clearfix">
+		<li class="col01">商品名称</li>
+		<li class="col02">商品单位</li>
+		<li class="col03">商品价格</li>
+		<li class="col04">数量</li>
+		<li class="col05">小计</li>
+		<li class="col06">操作</li>
+	</ul>
+
+    {% if f_goods %}
+     {% for k,v in f_goods.items %}
+	<ul class="cart_list_td clearfix" id ={{ k.0.id }}>
+		<li class="col01"><input type="checkbox" name="" checked></li>
+		<li class="col02"><img src="/{{ k.0.goods_front_image }}"></li>
+		<li class="col03">{{ k.0.name }}<br><em>{{ k.0.shop_price }}元/500g</em></li>
+		<li class="col04">500g</li>
+        {# 单价       #}
+		<li class="col05" id="price{{ k.0.id }}">{{ k.0.shop_price }}元</li>
+
+		<li class="col06">
+
+			<div class="num_add">
+				<a  class="add fl" onclick="add_goods({{ k.0.shop_price }},{{ k.0.id }})">+</a>
+				<input type="text" class="num_show fl" id="num{{ k.0.id }}" value="{{ v }}">
+				<a class="minus fl" onclick="del_goods({{ k.0.shop_price }},{{ k.0.id }})">-</a>
+			</div>
+
+		</li>
+        {# 小计       #}
+		<li class="col07"id="sumprice{{ k.0.id }}">{{ k.0.shop_price }}元</li>
+		<li class="col08"><a id="del_cart" onclick="del_cart({{ k.0.id }})">删除</a></li>
+	</ul>
+    {% endfor %}
+
+    {% else %}
+        {% for i in cart %}
+	<ul class="cart_list_td clearfix" id ={{ i.goods_id }}>
+		<li class="col01"><input type="checkbox" name="" checked></li>
+		<li class="col02"><img src="/{{i.goods.goods_front_image }}"></li>
+		<li class="col03">{{ i.goods.name }}<br><em>{{ i.goods.shop_price }}元/500g</em></li>
+		<li class="col04">500g</li>
+        {# 单价       #}
+		<li class="col05" id="price{{ i.goods_id }}">{{ i.goods.shop_price }}元</li>
+
+		<li class="col06">
+
+			<div class="num_add">
+				<a  class="add fl" onclick="add_goods({{ i.goods.shop_price }},{{ i.goods_id }})">+</a>
+				<input type="text" class="num_show fl" id="num{{ i.goods_id }}" value="{{ i.nums }}">
+				<a class="minus fl" onclick="del_goods({{ i.goods.shop_price }},{{ i.goods_id }})">-</a>
+			</div>
+
+		</li>
+        {# 小计       #}
+		<li class="col07"id="sumprice{{ i.goods_id }}">{{ i.goods.shop_price }}元</li>
+		<li class="col08"><a id="del_cart" onclick="del_cart({{ i.goods_id }})">删除</a></li>
+	</ul>
+    {% endfor %}
+    {% endif %}
+
+
+
+	<ul class="settlements">
+		<li class="col01"><input type="checkbox" name="" checked=""></li>
+		<li class="col02">全选</li>
+		<li class="col03">合计(不含运费)：<span>¥</span><em></em><br>共计<b>2</b>件商品</li>
+		<li class="col04"><a href="{% url 'carts:place_order' %}">去结算</a></li>
+	</ul>
+
+        <script>
+        {# 删除购物车商品信息       #}
+            function del_cart(id) {
+                {#console.log(id)#}
+                $.ajax({
+                    url:'/carts/index/',
+                    type:'POST',
+                    data:{'goods_id':id},
+                    dataType:'json',
+
+                    success:function (data) {
+                        console.log(data)
+                        if (data.code ==200){
+                        {# 获取商品id #}
+                            $('#'+id).remove()
+                            a()
+                            {#document.getElementById(id).remove()#}
+                        }
+                    }
+                })
+            }
+
+            {#商品数量增加  #}
+            function add_goods(price,id) {
+                var goods_num = parseInt($('#num' + id).val());
+                var num = ++goods_num
+                if (num < 1) {
+                    return
+                }
+                else {
+                    $('#num' + id).val(num);
+                    {#console.log(num, goods_num)#}
+                    {# 计算价格 #}
+                    $('#sumprice' + id).html((parseFloat(num) * parseFloat(price)).toFixed(1) + '元')
+                    }
+                ajax(id)
+                a()
+                 }
+
+
+            {#商品数量减少 #}
+            function del_goods(price,id) {
+
+                var goods_num = parseInt($('#num' + id).val());
+                var num = --goods_num
+                if (num < 1) {
+                    return
+                }
+                else {
+                    $('#num' + id).val(num);
+                    {#console.log(num, goods_num)#}
+                    {# 计算价格 #}
+                    $('#sumprice' + id).html((parseFloat(num) * parseFloat(price)).toFixed(1) + '元')
+
+                    }
+                ajax(id)
+                a()
+                }
+
+            {#商品总和 sum #}
+            a()
+            function a(){
+                var  sum = 0
+                console.log(sum,'1111')
+                var len = $('[id^=sumprice]')
+                for(var i=0;i<len.length;i++){
+                    prices = parseFloat(len[i].innerText)
+                    {#console.log(prices)#}
+                    sum+=prices
+                }
+                $('.settlements').find('.col03').find('em').html(sum)
+            }
+
+
+            {#页面随时刷新小计总价#}
+
+        $(function (){
+                console.log('11111')
+                 var num = $('[id^=num]')   {# 数量 #}
+                 var price = $('[id^=price]') {# 单价 #}
+                 var len=$('[id^=sumprice]'){# 小计 #}
+
+                 var sumnum = 0
+                {#console.log(price,num)#}
+                {#商品总和 sum #}
+                for(var i=0;i<num.length;i++){
+                    {# 得到一个对象，或者说一个div样式，取里面的价格，也就是innerText ，16.元，用切片 substring 把‘元’去掉，得到16 #}
+                    prices = parseFloat(price[i].innerText)*num[i].value
+                    console.log(typeof (prices),prices)
+                    len[i].innerText=prices.toFixed(1) + '元'
+
+                    sumnum+=parseInt(num[i].value)
+                }
+                $('.col03 b').html(sumnum)
+                a()
+            })
+
+
+            {#ajax修改数量#}
+            function ajax(id) {
+                var goods_num = parseInt($('#num' + id).val());
+                console.log('--------ajax--------',id,goods_num)
+                $.ajax({
+                    url:'/carts/change_cart/',
+                    type: 'POST',
+                    data: {'num':goods_num,'id':id},
+                    dataType: 'json',
+                    success:function (data) {
+                        console.log('-------data------',data)
+                    }
+                })
+
+
+            }
+
+
+        </script>
+    {% endblock %}

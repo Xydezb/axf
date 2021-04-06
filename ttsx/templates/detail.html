@@ -1,0 +1,140 @@
+
+{% extends 'base_main.html' %}
+
+
+
+    {% block body %}
+	<div class="search_bar clearfix">
+		<a href="{% url 'user:index' %}" class="logo fl"><img src="/static/images/logo.png"></a>
+		<div class="search_con fl">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+		<div class="guest_cart fr">
+			<a href="{% url 'carts:index' %}" class="cart_name fl">我的购物车</a>
+			<div class="goods_count fl" id="show_count">1</div>
+		</div>
+	</div>
+
+	<div class="navbar_con">
+		<div class="navbar clearfix">
+			<div class="subnav_con fl">
+				<h1>全部商品分类</h1>	
+				<span></span>			
+				<ul class="subnav">
+					<li><a href="#" class="fruit">新鲜水果</a></li>
+					<li><a href="#" class="seafood">海鲜水产</a></li>
+					<li><a href="#" class="meet">猪牛羊肉</a></li>
+					<li><a href="#" class="egg">禽类蛋品</a></li>
+					<li><a href="#" class="vegetables">新鲜蔬菜</a></li>
+					<li><a href="#" class="ice">速冻食品</a></li>
+				</ul>
+			</div>
+			<ul class="navlist fl">
+				<li><a href="">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="breadcrumb">
+		<a href="#">全部分类</a>
+		<span>></span>
+		<a href="#">新鲜水果</a>
+		<span>></span>
+		<a href="#">商品详情</a>
+	</div>
+
+
+
+	<div class="goods_detail_con clearfix">
+
+		<div class="goods_detail_pic fl"><img src="/{{ users.goods_front_image }}" width="100%" height="100%"></div>
+
+		<div class="goods_detail_list fr">
+			<h3>{{ users.name}}</h3>
+			<p>草莓浆果柔软多汁，味美爽口，适合速冻保鲜贮藏。草莓速冻后，可以保持原有的色、香、味，既便于贮藏，又便于外销。</p>
+			<div class="prize_bar">
+				<span class="show_pirze">¥<em>{{ users.shop_price }}</em></span>
+				<span class="show_unit">单  位：500g</span>
+			</div>
+
+			<div class="goods_num clearfix">
+
+				<div class="num_name fl">数 量:</div>
+
+				<div class="num_add fl">
+					<input type="text" class="num_show fl" value="1">
+
+					<a  class="add fr" onclick="add_goods( {{ users.shop_price }})">+</a>
+
+					<a class="minus fr" onclick="del_goods({{ users.shop_price }})">-</a>
+				</div>
+
+			</div>
+
+			<div class="total">总价：<em>{{ users.shop_price }}元</em></div>
+			<div class="operate_btn">
+				<a href="" class="buy_btn">立即购买</a>
+				<a class="add_cart" id="add_cart" onclick="add_cart({{ users.id }})">加入购物车</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="add_jump"></div>
+
+
+	<script type="text/javascript">
+            {# 商品数量增加 #}
+            function add_goods(price) {
+                var goods_num = parseInt($('.num_show').val());
+                 goods_num++;
+                {# 计算总价 #}
+                $('.num_show').val(goods_num);
+                var total_price = goods_num*price;
+                $('.total em').html(total_price.toFixed(1) + '元');
+            }
+            {# 商品数量减少 #}
+            function del_goods(price) {
+                var goods_num = parseInt($('.num_show').val());
+                goods_num--;
+                if (goods_num<0){
+                    return
+                }
+                {# 计算价格 #}
+                $('.num_show').val(goods_num);
+                var total_parice = goods_num*price;
+                $('.total em').html(total_parice.toFixed(1)+'元')
+
+            }
+
+            function add_cart(id){
+                {# num 获取的本页商品个数#}
+                var num =$('.num_show').val()
+                console.log(id,num)
+                $.ajax({
+                    url:'/carts/add_cart/',
+                    type:'POST',
+                    data:{'goods_id':id,'goods_num':num},
+                    dataType:'json',
+                    {#headers:{'X-CSRFToken': csrf},#}
+                    success:function (data) {
+                        console.log(data)
+                        if (data.code == 200 || data.code == 400)  {
+                        {#  获取现页面数量动态增加  #}
+                            num1 = parseInt($('#show_count').text())+parseInt(num)
+                            $('#show_count').html(num1)
+
+                            }
+
+                        }
+
+                })
+            }
+
+
+	</script>
+    {% endblock %}
